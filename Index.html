@@ -1,0 +1,219 @@
+# Internet-Time-Capsule
+Newrepo
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+
+const capsuleRoutes = require("./routes/capsules");
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+mongoose.connect("YOUR_MONGODB_URL")
+.then(() => console.log("MongoDB Connected"))
+.catch(err => console.log(err));
+
+app.use("/api/capsules", capsuleRoutes);
+
+app.listen(5000, () => {
+  console.log("Server running on port 5000");
+});
+const mongoose = require("mongoose");
+
+const CapsuleSchema = new mongoose.Schema({
+  title: String,
+  description: String,
+  link: String,
+  emotion: String,
+  unlockDate: Date,
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+module.exports = mongoose.model("Capsule", CapsuleSchema);
+const router = require("express").Router();
+const Capsule = require("../models/Capsule");
+
+router.post("/", async (req, res) => {
+  try {
+    const capsule = new Capsule(req.body);
+    await capsule.save();
+    res.json(capsule);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+router.get("/", async (req, res) => {
+  try {
+    const capsules = await Capsule.find().sort({ createdAt: -1 });
+    res.json(capsules);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+module.exports = router;
+import { useEffect, useState } from "react";
+import axios from "axios";
+
+function App() {
+  const [capsules, setCapsules] = useState([]);
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    link: "",
+    emotion: "",
+    unlockDate: ""
+  });
+
+  const fetchCapsules = async () => {
+    const res = await axios.get("http://localhost:5000/api/capsules");
+    setCapsules(res.data);
+  };
+
+  useEffect(() => {
+    fetchCapsules();
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    await axios.post("http://localhost:5000/api/capsules", form);
+
+    setForm({
+      title: "",
+      description: "",
+      link: "",
+      emotion: "",
+      unlockDate: ""
+    });
+
+    fetchCapsules();
+  };
+
+  return (
+    <div className="min-h-screen bg-black text-white p-10">
+      <h1 className="text-5xl font-bold mb-10">
+        Internet Time Capsule
+      </h1>
+
+      <form
+        onSubmit={handleSubmit}
+        className="bg-zinc-900 p-6 rounded-xl mb-10"
+      >
+        <input
+          className="w-full p-3 mb-4 bg-zinc-800"
+          placeholder="Title"
+          value={form.title}
+          onChange={(e) =>
+            setForm({ ...form, title: e.target.value })
+          }
+        />
+
+        <textarea
+          className="w-full p-3 mb-4 bg-zinc-800"
+          placeholder="Memory Description"
+          value={form.description}
+          onChange={(e) =>
+            setForm({ ...form, description: e.target.value })
+          }
+        />
+
+        <input
+          className="w-full p-3 mb-4 bg-zinc-800"
+          placeholder="Link"
+          value={form.link}
+          onChange={(e) =>
+            setForm({ ...form, link: e.target.value })
+          }
+        />
+
+        <input
+          className="w-full p-3 mb-4 bg-zinc-800"
+          placeholder="Emotion"
+          value={form.emotion}
+          onChange={(e) =>
+            setForm({ ...form, emotion: e.target.value })
+          }
+        />
+
+        <input
+          type="date"
+          className="w-full p-3 mb-4 bg-zinc-800"
+          value={form.unlockDate}
+          onChange={(e) =>
+            setForm({ ...form, unlockDate: e.target.value })
+          }
+        />
+
+        <button className="bg-white text-black px-6 py-3 rounded-lg">
+          Save Capsule
+        </button>
+      </form>
+
+      <div className="grid gap-6">
+        {capsules.map((capsule) => (
+          <div
+            key={capsule._id}
+            className="bg-zinc-900 p-6 rounded-xl"
+          >
+            <h2 className="text-2xl font-bold">
+              {capsule.title}
+            </h2>
+
+            <p className="mt-2 text-zinc-300">
+              {capsule.description}
+            </p>
+
+            <a
+              href={capsule.link}
+              target="_blank"
+              className="text-blue-400 block mt-3"
+            >
+              Open Memory
+            </a>
+
+            <div className="mt-3">
+              Emotion: {capsule.emotion}
+            </div>
+
+            <div className="text-sm text-zinc-500 mt-2">
+              Unlocks on:
+              {" "}
+              {new Date(
+                capsule.unlockDate
+              ).toDateString()}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default App;
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init -p
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+cd client
+
+npm install axios framer-motion
+cd server
+
+npm install express mongoose cors
+node server.js
+npm run dev
